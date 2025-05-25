@@ -5,8 +5,8 @@ import datetime
 import asyncio
 
 # === CONFIGURATION ===
-api_id = int(os.getenv('API_ID', '0'))           # Fallback to 0 if not set
-api_hash = os.getenv('API_HASH', '')             # Fallback to empty string
+api_id = 25440549  # <- your hardcoded API ID
+api_hash = 'c13c2b66dccce92a8c95e4de3adbf533'  # <- your hardcoded API hash
 session_name = 'link_forwarder'                 # Will store .session file
 
 # Source channels to monitor
