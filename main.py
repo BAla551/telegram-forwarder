@@ -4,10 +4,10 @@ import re
 import datetime
 import asyncio
 
-# === CONFIGURATION ===
-api_id = 25440549  # <- your hardcoded API ID
-api_hash = 'c13c2b66dccce92a8c95e4de3adbf533'  # <- your hardcoded API hash
-session_name = 'link_forwarder'                 # Will store .session file
+# === CONFIGURATION (HARDCODED) ===
+api_id = 25440549  # <-- hardcoded API ID
+api_hash = 'c13c2b66dccce92a8c95e4de3adbf533'  # <-- hardcoded API hash
+session_name = 'link_forwarder'  # Will store .session file
 
 # Source channels to monitor
 source_channels = [
