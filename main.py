@@ -18,31 +18,14 @@ source_channels = [
 # Link converter bot username
 link_converter_bot = '@ExtraPeBot'
 
-# Daily run window (24-hour clock, IST)
-start_hour = 8    # 08:00 IST
-end_hour = 24     # Midnight IST
-
 # === SETUP TELEGRAM CLIENT ===
 client = TelegramClient(session_name, api_id, api_hash)
 url_pattern = re.compile(r'https?://[^\s]+')
 
 
 def is_within_run_window():
-    # Get current UTC time
-    now_utc = datetime.datetime.utcnow()
-    # Convert to IST (UTC +5:30)
-    now_ist = now_utc + datetime.timedelta(hours=5, minutes=30)
-    current_time = now_ist.time()
-
-    # Debug: print current IST time
-    print(f'[DEBUG] Current IST time: {current_time.strftime("%H:%M:%S")}')
-
-    start = datetime.time(hour=start_hour)
-    end = datetime.time(hour=end_hour if end_hour != 24 else 0)
-    if start < end:
-        return start <= current_time < end
-    else:
-        return current_time >= start or current_time < end
+    # Always return True (no time window)
+    return True
 
 
 @client.on(events.NewMessage(chats=source_channels))
@@ -67,16 +50,13 @@ async def handler(event):
 async def main():
     print('[✓] Starting Telegram client...')
     await client.start()
-    print(f'[✓] Listening daily from {start_hour}:00 to {end_hour}:00 IST.')
+    print(f'[✓] Running 24/7 — no shutdown window.')
 
     while True:
-        if not is_within_run_window():
-            print('[!] Outside allowed time window — shutting down.')
-            break
-        await asyncio.sleep(60)
+        await asyncio.sleep(60)  # Keep running forever
 
     await client.disconnect()
-    print('[✓] Script stopped for the day.')
+    print('[✓] Script stopped.')
 
 
 if __name__ == '__main__':
