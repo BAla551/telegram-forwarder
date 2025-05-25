@@ -34,6 +34,9 @@ def is_within_run_window():
     now_ist = now_utc + datetime.timedelta(hours=5, minutes=30)
     current_time = now_ist.time()
 
+    # Debug: print current IST time
+    print(f'[DEBUG] Current IST time: {current_time.strftime("%H:%M:%S")}')
+
     start = datetime.time(hour=start_hour)
     end = datetime.time(hour=end_hour if end_hour != 24 else 0)
     if start < end:
@@ -45,7 +48,7 @@ def is_within_run_window():
 @client.on(events.NewMessage(chats=source_channels))
 async def handler(event):
     if not is_within_run_window():
-        print('[!] Outside allowed time window — skipping.')
+        print('[!] Outside allowed time window — skipping message.')
         return
 
     message_text = event.raw_text
@@ -68,7 +71,7 @@ async def main():
 
     while True:
         if not is_within_run_window():
-            print('[!] Outside window — shutting down.')
+            print('[!] Outside allowed time window — shutting down.')
             break
         await asyncio.sleep(60)
 
