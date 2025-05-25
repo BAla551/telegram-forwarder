@@ -5,9 +5,9 @@ import datetime
 import asyncio
 
 # === CONFIGURATION ===
-api_id = int(os.getenv('API_ID'))           # Loaded from Fly.io env
-api_hash = os.getenv('API_HASH')            # Loaded from Fly.io env
-session_name = 'link_forwarder'             # Will store .session file
+api_id = int(os.getenv('API_ID', '0'))           # Fallback to 0 if not set
+api_hash = os.getenv('API_HASH', '')             # Fallback to empty string
+session_name = 'link_forwarder'                 # Will store .session file
 
 # Source channels to monitor
 source_channels = [
