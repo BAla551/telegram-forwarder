@@ -18,24 +18,39 @@ source_channels = [
 # Link converter bot username
 link_converter_bot = '@ExtraPeBot'
 
+# Daily run window (24-hour clock)
+start_hour = 8    # 08:00
+end_hour = 24     # Midnight
+
 # === SETUP TELEGRAM CLIENT ===
 client = TelegramClient(session_name, api_id, api_hash)
 url_pattern = re.compile(r'https?://[^\s]+')
 
-
 def is_within_run_window():
-    # Always return True (no time window)
-    return True
-
+    now = datetime.datetime.now().time()
+    start = datetime.time(hour=start_hour)
+    end = datetime.time(hour=end_hour if end_hour != 24 else 0)
+    print(f'[DEBUG] Current system time: {now}')
+    if start < end:
+        inside = start <= now < end
+    else:
+        inside = now >= start or now < end
+    print(f'[DEBUG] Is within run window: {inside}')
+    return inside
 
 @client.on(events.NewMessage(chats=source_channels))
 async def handler(event):
+    print('[DEBUG] New message event detected.')
     if not is_within_run_window():
-        print('[!] Outside allowed time window — skipping message.')
+        print('[!] Outside allowed time window — skipping.')
         return
 
     message_text = event.raw_text
+    print(f'[DEBUG] Message text: {message_text[:100]}')  # Print first 100 chars
+
     links = url_pattern.findall(message_text)
+    print(f'[DEBUG] Extracted links: {links}')
+
     if links:
         for link in links:
             try:
@@ -46,18 +61,19 @@ async def handler(event):
     else:
         print('[!] No links found in this message.')
 
-
 async def main():
     print('[✓] Starting Telegram client...')
     await client.start()
-    print(f'[✓] Running 24/7 — no shutdown window.')
+    print(f'[✓] Listening daily from {start_hour}:00 to {end_hour}:00.')
 
-    while True:
-        await asyncio.sleep(60)  # Keep running forever
-
-    await client.disconnect()
-    print('[✓] Script stopped.')
-
+    try:
+        while True:
+            await asyncio.sleep(60)
+    except Exception as e:
+        print(f'[!] Main loop error: {e}')
+    finally:
+        await client.disconnect()
+        print('[✓] Script stopped.')
 
 if __name__ == '__main__':
     with client:
