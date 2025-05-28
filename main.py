@@ -1,80 +1,40 @@
-import os
-from telethon import TelegramClient, events
-import re
-import datetime
 import asyncio
+import time
+from telethon import TelegramClient, events
 
-# === CONFIGURATION (HARDCODED) ===
-api_id = 25440549  # <-- hardcoded API ID
-api_hash = 'c13c2b66dccce92a8c95e4de3adbf533'  # <-- hardcoded API hash
-session_name = 'link_forwarder'  # Will store .session file
+# --- TELETHON CONFIG ---
+api_id = 25440549
+api_hash = 'c13c2b66dccce92a8c95e4de3adbf533'
+session_name = 'link_forwarder'
 
-# Source channels to monitor
-source_channels = [
-    '@telugutechtuts',
-    '@TechFactsDeals'
-]
+source_channels = ['@telugutechtuts', '@TechFactsDeals']
+target_bot = '@ExtraPeBot'
 
-# Link converter bot username
-link_converter_bot = '@ExtraPeBot'
-
-# Daily run window (24-hour clock)
-start_hour = 8    # 08:00
-end_hour = 24     # Midnight
-
-# === SETUP TELEGRAM CLIENT ===
 client = TelegramClient(session_name, api_id, api_hash)
-url_pattern = re.compile(r'https?://[^\s]+')
-
-def is_within_run_window():
-    now = datetime.datetime.now().time()
-    start = datetime.time(hour=start_hour)
-    end = datetime.time(hour=end_hour if end_hour != 24 else 0)
-    print(f'[DEBUG] Current system time: {now}')
-    if start < end:
-        inside = start <= now < end
-    else:
-        inside = now >= start or now < end
-    print(f'[DEBUG] Is within run window: {inside}')
-    return inside
 
 @client.on(events.NewMessage(chats=source_channels))
 async def handler(event):
-    print('[DEBUG] New message event detected.')
-    if not is_within_run_window():
-        print('[!] Outside allowed time window — skipping.')
-        return
+    try:
+        print(f'[✓] New message received: {event.id}')
+        await client.forward_messages(target_bot, event.message)
+        print(f'[✓] Message {event.id} forwarded to {target_bot}')
+    except Exception as e:
+        print(f'[!] Error forwarding message {event.id}: {e}')
 
-    message_text = event.raw_text
-    print(f'[DEBUG] Message text: {message_text[:100]}')  # Print first 100 chars
-
-    links = url_pattern.findall(message_text)
-    print(f'[DEBUG] Extracted links: {links}')
-
-    if links:
-        for link in links:
-            try:
-                await client.send_message(link_converter_bot, link)
-                print(f'[✓] Forwarded: {link}')
-            except Exception as e:
-                print(f'[!] Failed to forward {link}: {e}')
-    else:
-        print('[!] No links found in this message.')
-
-async def main():
+async def run_client():
     print('[✓] Starting Telegram client...')
     await client.start()
-    print(f'[✓] Listening daily from {start_hour}:00 to {end_hour}:00.')
+    print('[✓] Listening 24/7 for new messages...')
+    await client.run_until_disconnected()
 
-    try:
-        while True:
-            await asyncio.sleep(60)
-    except Exception as e:
-        print(f'[!] Main loop error: {e}')
-    finally:
-        await client.disconnect()
-        print('[✓] Script stopped.')
+async def main():
+    while True:
+        try:
+            await run_client()
+        except Exception as e:
+            print(f'[!] Client crashed with error: {e}')
+            print('[!] Restarting in 10 seconds...')
+            await asyncio.sleep(10)
 
 if __name__ == '__main__':
-    with client:
-        client.loop.run_until_complete(main())
+    asyncio.run(main())
